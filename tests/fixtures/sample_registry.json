@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "generated_at_unix": 1700000000.0,
+  "apps": [
+    {
+      "id": "notepad-abc12345",
+      "display_name": "Notepad",
+      "spoken_aliases": ["notepad"],
+      "launch": {
+        "kind": "shell_execute",
+        "target": "C:\\Windows\\System32\\notepad.exe",
+        "arguments": "",
+        "working_directory": ""
+      },
+      "window_match": {
+        "title_substrings": ["Notepad"],
+        "process_names": ["notepad.exe"],
+        "exclude_class_names": ["Shell_TrayWnd", "Progman"]
+      },
+      "sources": ["start_menu"],
+      "install_location": ""
+    },
+    {
+      "id": "slack-def67890",
+      "display_name": "Slack",
+      "spoken_aliases": ["slack", "slack app"],
+      "launch": {
+        "kind": "shell_execute",
+        "target": "C:\\Users\\me\\AppData\\Local\\Programs\\slack\\Slack.exe",
+        "arguments": "",
+        "working_directory": ""
+      },
+      "window_match": {
+        "title_substrings": ["Slack"],
+        "process_names": ["Slack.exe"],
+        "exclude_class_names": ["Shell_TrayWnd", "Progman"]
+      },
+      "sources": ["uninstall_registry"],
+      "install_location": ""
+    }
+  ]
+}
