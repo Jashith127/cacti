@@ -11,8 +11,11 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-windows = ["pywin32>=306"]
+windows = ["pywin32>=306", "comtypes>=1.4", "pycaw>=20240210", "Pillow>=10.0"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+cacti = "cacti.assistant.loop:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cacti"]
