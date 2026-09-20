@@ -27,3 +27,7 @@ class InvalidParameter(CactiError):
 
 class RegistryStale(CactiError):
     """Cached app registry is missing and could not be rebuilt."""
+
+
+class CredentialDenied(CactiError):
+    """Credential access was denied or cancelled."""

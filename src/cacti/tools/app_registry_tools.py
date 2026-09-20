@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from cacti.apps.registry import get_app_registry
-from cacti.errors import AppNotFound, PlatformUnsupported
+from cacti.errors import PlatformUnsupported
 from cacti.needle_shim import tool
-from cacti.win.launch import launch_app
 
 
 @tool
@@ -16,17 +15,6 @@ def refresh_app_registry() -> str:
         return f"skipped: {exc.message}"
     count = len(snapshot.apps)
     return f"App registry refreshed with {count} entries."
-
-
-@tool
-def launch_application(app_name: str) -> str:
-    """Launch an installed application by spoken name or stable app id from the auto-built registry."""
-    registry = get_app_registry()
-    try:
-        app = registry.get_by_id(app_name)
-    except AppNotFound:
-        app = registry.resolve_spoken_name(app_name)
-    return launch_app(app)
 
 
 @tool
