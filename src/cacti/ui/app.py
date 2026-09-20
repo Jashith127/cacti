@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import math
+import sys
 import threading
+import traceback
 import tkinter as tk
 from tkinter import font as tkfont
 
@@ -317,17 +319,26 @@ class CactiShell(tk.Tk):
         def work() -> None:
             try:
                 if isinstance(self._stt, ParakeetSTTProvider):
+                    self.after(
+                        0,
+                        lambda: self.orb.status.configure(
+                            text="loading speech model (first run can take a few minutes)…"
+                        ),
+                    )
                     text = self._stt.transcribe_samples(samples, sample_rate)
                 else:
                     text = self._stt.transcribe(None)
                 if not text.strip():
                     self.after(0, lambda: self._fail("I did not catch that."))
                     return
-                self.after(0, lambda: self.run_turn(text))
+                self.after(0, lambda t=text: self.run_turn(t))
             except PlatformUnsupported as exc:
-                self.after(0, lambda: self._fail(exc.message))
+                message = exc.message
+                self.after(0, lambda m=message: self._fail(m))
             except Exception as exc:
-                self.after(0, lambda: self._fail(str(exc)))
+                message = str(exc) or type(exc).__name__
+                print(traceback.format_exc(), file=sys.stderr)
+                self.after(0, lambda m=message: self._fail(m))
 
         threading.Thread(target=work, daemon=True).start()
 
