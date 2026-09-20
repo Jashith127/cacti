@@ -6,7 +6,8 @@ Voice-first **Windows 11** desktop assistant: local STT (stub), **Needle 3** too
 
 ```mermaid
 flowchart LR
-  Mic[Microphone] --> STT[STT_Stub]
+  Mic[Microphone] --> Wake[VAD_or_PTT]
+  Wake --> STT[Parakeet_or_stub]
   STT --> Needle[Needle3_Client]
   Needle --> Router[Confidence_Router]
   Router -->|Act| Tools[needle_tools]
@@ -69,20 +70,40 @@ Implementation: [`src/cacti/routing/`](src/cacti/routing/).
 
 No manual YAML: see [`src/cacti/apps/`](src/cacti/apps/).
 
-## Quick start (development)
+## How the code works
+
+```mermaid
+flowchart TB
+  Wake[VAD_or_F8_PTT] --> Show[Show_fuzzy_orb]
+  Show --> ASR[Parakeet_TDT_v2_ONNX]
+  ASR -->|CUDA_if_available| Needle[Needle3_intent]
+  Needle --> Router[Act_Confirm_Refuse]
+  Router --> Tools[Win32_tools]
+  Tools --> Hide[Hide_orb]
+```
+
+1. **Cacti client** (`cacti-ui`) is the control panel: master on/off, wake, speech, and per-tool switches. Settings persist in `%LOCALAPPDATA%\cacti\settings.json`.
+2. The **orb stays hidden** until speak-to-wake or hold-to-talk. Tray (if installed) → Open Cacti. No tray → the client window stays as home.
+3. **Mic gate** captures one utterance (VAD silence or hotkey-up).
+4. **Parakeet TDT 0.6B v2** transcribes locally. GPU if CUDA/DirectML is available.
+5. Needle + router run the tool, then the orb hides unless a confirm is needed.
+
+## Cacti client + ASR
 
 ```bash
 pip install -e ".[dev]"
-pip install -e ".[windows]"   # on Windows 11
+pip install -e ".[windows]"
+pip install -e ".[asr-cuda]"   # NVIDIA GPU
+# pip install -e ".[asr]"      # CPU-only speech
 
-# One-shot utterance (fake Needle routing)
+cacti-ui
+```
+
+First launch opens the client. Save settings, then hold **F8** or speak. First Parakeet run downloads ~2GB.
+
+```bash
 CACTI_FAKE_TOOL="set_system_mute:muted=true:confidence=0.95" cacti --text "mute"
-
-# Built-in phrase routing
 cacti --text "open notepad"
-
-# Or env utterance for STT stub
-CACTI_TEST_UTTERANCE="focus slack" cacti
 ```
 
 Register all tools for Needle compilation:
@@ -99,7 +120,8 @@ Swap `cacti.needle_shim.tool` for `needle.tool` when the Cactus Needle 3 SDK is 
 src/cacti/
   needle_registry.py      # all @needle.tool exports
   routing/                # tiers + router
-  assistant/              # loop, STT/TTS stubs, fake Needle client
+  assistant/              # engine, Parakeet STT, VAD/PTT wake
+  ui/                     # client (toggles) + hidden orb + tray
   tools/                  # system, windows, context, security, registry
   apps/                   # automatic app discovery + cache
   win/                    # volume, windows_uia, browser_uia, ocr, credentials, …
