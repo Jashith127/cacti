@@ -44,10 +44,12 @@ class AssistantEngine:
         speak: SpeakFn | None = None,
         on_event: EventFn | None = None,
         confirm: ConfirmFn | None = None,
+        tool_allowed: Callable[[str], bool] | None = None,
     ) -> None:
         self._speak = speak or (lambda _text: None)
         self._on_event = on_event or (lambda _event: None)
         self._confirm = confirm
+        self._tool_allowed = tool_allowed or (lambda _name: True)
         self._started = False
 
     def ensure_started(self) -> None:
@@ -82,6 +84,14 @@ class AssistantEngine:
         return results
 
     def _execute(self, call: ToolCall) -> str:
+        if not self._tool_allowed(call.name):
+            self._emit(
+                "refuse",
+                AssistantState.IDLE,
+                f"{call.name.replace('_', ' ')} is turned off in Cacti.",
+            )
+            return "disabled"
+
         tier = route_tool_turn(call.name, call.arguments, call.confidence)
         if tier == ExecutionTier.REFUSE:
             self._emit("refuse", AssistantState.IDLE, "I cannot do that safely.")

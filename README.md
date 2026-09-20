@@ -82,30 +82,24 @@ flowchart TB
   Tools --> Hide[Hide_orb]
 ```
 
-1. **`cacti-ui` stays withdrawn.** Nothing sits on the desktop until you **hold F8** (push-to-talk) or **speak** (energy VAD). Then the fuzzy orb appears.
-2. **Mic gate** (`assistant/wake/mic_gate.py`) captures the utterance and stops on silence (VAD) or key-up (PTT).
-3. **Parakeet TDT 0.6B v2** (`assistant/stt/parakeet.py`) transcribes locally via `onnx-asr`. Providers: **CUDA → DirectML → CPU**. Force CPU with `CACTI_ASR_DEVICE=cpu`.
-4. **Needle** maps the transcript to a tool; **router** decides Act / Confirm / Refuse.
-5. The orb shows transcript + confirm pills, then **hides again**.
+1. **Cacti client** (`cacti-ui`) is the control panel: master on/off, wake, speech, and per-tool switches. Settings persist in `%LOCALAPPDATA%\cacti\settings.json`.
+2. The **orb stays hidden** until speak-to-wake or hold-to-talk. Tray (if installed) → Open Cacti. No tray → the client window stays as home.
+3. **Mic gate** captures one utterance (VAD silence or hotkey-up).
+4. **Parakeet TDT 0.6B v2** transcribes locally. GPU if CUDA/DirectML is available.
+5. Needle + router run the tool, then the orb hides unless a confirm is needed.
 
-CLI (`cacti --text …`) still bypasses wake/ASR for tests.
-
-## Floating UI + ASR
+## Cacti client + ASR
 
 ```bash
 pip install -e ".[dev]"
-pip install -e ".[windows]"          # Win32 backends
-pip install -e ".[asr-cuda]"         # Parakeet + onnxruntime-gpu (preferred)
-# or: pip install -e ".[asr]"        # CPU ONNX Runtime
+pip install -e ".[windows]"
+pip install -e ".[asr-cuda]"   # NVIDIA GPU
+# pip install -e ".[asr]"      # CPU-only speech
 
-export CACTI_STT=parakeet            # Windows: setx / $env:CACTI_STT='parakeet'
-cacti-ui                             # hidden until VAD or F8
-# CACTI_WAKE=ptt    # PTT only (no background VAD)
-# CACTI_WAKE=vad    # VAD only
-# CACTI_PTT_KEY=f8
+cacti-ui
 ```
 
-First Parakeet run downloads ~2GB to the Hugging Face cache; later runs are offline.
+First launch opens the client. Save settings, then hold **F8** or speak. First Parakeet run downloads ~2GB.
 
 ```bash
 CACTI_FAKE_TOOL="set_system_mute:muted=true:confidence=0.95" cacti --text "mute"
@@ -127,7 +121,7 @@ src/cacti/
   needle_registry.py      # all @needle.tool exports
   routing/                # tiers + router
   assistant/              # engine, Parakeet STT, VAD/PTT wake
-  ui/                     # hidden-until-wake fuzzy orb
+  ui/                     # client (toggles) + hidden orb + tray
   tools/                  # system, windows, context, security, registry
   apps/                   # automatic app discovery + cache
   win/                    # volume, windows_uia, browser_uia, ocr, credentials, …

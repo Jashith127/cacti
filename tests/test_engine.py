@@ -42,16 +42,19 @@ def test_engine_confirm_can_cancel(monkeypatch):
 
 
 def test_stt_factory_default_is_stub(monkeypatch):
-    monkeypatch.delenv("CACTI_STT", raising=False)
     from cacti.assistant.stt.factory import get_stt_provider
     from cacti.assistant.stt_stub import StubSTTProvider
+    from cacti.settings import CactiSettings
 
-    assert isinstance(get_stt_provider(), StubSTTProvider)
+    assert isinstance(get_stt_provider(settings=CactiSettings(stt_backend="stub")), StubSTTProvider)
 
 
 def test_stt_factory_parakeet(monkeypatch):
-    monkeypatch.setenv("CACTI_STT", "parakeet")
     from cacti.assistant.stt.factory import get_stt_provider
     from cacti.assistant.stt.parakeet import ParakeetSTTProvider
+    from cacti.settings import CactiSettings
 
-    assert isinstance(get_stt_provider(), ParakeetSTTProvider)
+    assert isinstance(
+        get_stt_provider(settings=CactiSettings(stt_backend="parakeet")),
+        ParakeetSTTProvider,
+    )

@@ -26,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--ui",
         action="store_true",
-        help="Run hidden until VAD or F8 push-to-talk",
+        help="Open the Cacti client (settings + hidden orb)",
     )
     args = parser.parse_args(argv)
 

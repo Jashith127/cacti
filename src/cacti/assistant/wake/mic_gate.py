@@ -20,6 +20,7 @@ class MicGate:
         on_state: StateFn | None = None,
         sample_rate: int = 16000,
         vad: bool = True,
+        vad_threshold: float = 0.018,
     ) -> None:
         self._on_utterance = on_utterance
         self._on_state = on_state or (lambda _s: None)
@@ -32,7 +33,7 @@ class MicGate:
         self._ptt = False
         self._stream = None
         self._thread: threading.Thread | None = None
-        self._vad = EnergyVAD(sample_rate=sample_rate)
+        self._vad = EnergyVAD(sample_rate=sample_rate, threshold=vad_threshold)
 
     def start(self) -> None:
         try:
